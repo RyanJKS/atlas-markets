@@ -3,7 +3,15 @@ name = "atlas-orders"
 version = "0.1.0"
 description = "Order management service scaffold for Atlas Markets"
 requires-python = ">=3.12,<3.13"
-dependencies = ["fastapi>=0.115,<1", "uvicorn>=0.34,<1"]
+dependencies = [
+    "atlas-telemetry",
+    "fastapi>=0.115,<1",
+    "opentelemetry-api>=1.30,<2",
+    "prometheus-client>=0.22,<1",
+    "pydantic>=2.14.1",
+    "pydantic-settings>=2.10,<3",
+    "uvicorn>=0.34,<1",
+]
 
 [build-system]
 requires = ["hatchling>=1.27,<2"]
@@ -11,3 +19,6 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/atlas_orders"]
+
+[tool.uv.sources]
+atlas-telemetry = { workspace = true }

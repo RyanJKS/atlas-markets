@@ -1,11 +1,6 @@
-"""HTTP entry point; order management is not implemented yet."""
+"""ASGI entry point for the orders service."""
 
-from fastapi import FastAPI
+from atlas_orders.app.bootstrap import create_app
+from atlas_orders.core.config.loader import get_settings
 
-app = FastAPI(title="Atlas Orders", version="0.1.0")
-
-
-@app.get("/health", tags=["operations"])
-def health() -> dict[str, str]:
-    """Report process liveness, not order processing readiness."""
-    return {"service": "orders", "status": "ok"}
+app = create_app(get_settings())
