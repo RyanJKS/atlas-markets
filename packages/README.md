@@ -11,8 +11,9 @@ that does not make the service a shared library. See
 [the package layout guide](../docs/development.md#build-setting-versus-shared-packages-directory)
 for examples of all three meanings.
 
-The first shared library is [`telemetry/`](telemetry/README.md): JSON logging with
-OpenTelemetry trace correlation and explicit OTLP/HTTP trace setup. For example:
+The first shared library is [`telemetry/`](telemetry/README.md): a small JSON
+logging setup, console tracing with optional OTLP/HTTP or Azure trace export,
+and a Prometheus metrics helper. Remote log export can be added later.
 
 ```python
 from atlas_telemetry import configure_logging

@@ -1,4 +1,4 @@
-"""JSON application logs with OpenTelemetry trace correlation."""
+"""Small JSON logging setup; no exporters or background threads."""
 
 import json
 import logging
@@ -8,8 +8,6 @@ from opentelemetry import trace
 
 
 class JsonFormatter(logging.Formatter):
-    """Render one JSON object per log line without exporting logs over OTLP."""
-
     def __init__(self, service_name: str) -> None:
         super().__init__()
         self.service_name = service_name
@@ -31,24 +29,16 @@ class JsonFormatter(logging.Formatter):
         return json.dumps(fields)
 
 
-class _JsonHandler(logging.StreamHandler):
-    """Identify the handler owned by this package."""
-
-
 def configure_logging(service_name: str, *, level: int | str = logging.INFO) -> logging.Logger:
-    """Return a named JSON logger on stderr, leaving the root logger unchanged.
-
-    Call during process startup. Repeated calls reuse this package's handler.
-    Use the returned logger for application messages.
-    """
+    """Configure the service's named logger once, writing JSON to stderr."""
     if not service_name.strip():
         raise ValueError("service_name must not be empty")
+
     logger = logging.getLogger(f"atlas.{service_name}")
     logger.setLevel(level)
     logger.propagate = False
-    handler = next((item for item in logger.handlers if isinstance(item, _JsonHandler)), None)
-    if handler is None:
-        handler = _JsonHandler()
+    if not logger.handlers:
+        handler = logging.StreamHandler()
+        handler.setFormatter(JsonFormatter(service_name))
         logger.addHandler(handler)
-    handler.setFormatter(JsonFormatter(service_name))
     return logger
