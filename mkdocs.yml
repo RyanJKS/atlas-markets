@@ -1,0 +1,7 @@
+site_name: "Atlas Markets"
+site_description: "End to End setup for a hedge fund company"
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+plugins:
+  - techdocs-core

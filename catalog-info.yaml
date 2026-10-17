@@ -1,0 +1,12 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: "atlas-markets"
+  title: "Atlas Markets"
+  annotations:
+    backstage.io/techdocs-ref: dir:.
+  description: "End to End setup for a hedge fund company"
+spec:
+  type: service
+  lifecycle: experimental
+  owner: "user:default/ryanjks"
