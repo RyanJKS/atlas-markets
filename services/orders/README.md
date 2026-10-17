@@ -26,6 +26,13 @@ From the repository root:
 uv run --package atlas-orders uvicorn atlas_orders.main:app --reload --port 8003
 ```
 
+The `just run-order` recipe redirects stderr to a file for Alloy log collection.
+If startup fails without showing an error in the terminal, inspect the traceback:
+
+```sh
+tail -n 80 infrastructure/telemetry/logs/orders.log
+```
+
 See [Local observability with Docker](docs/docker.md) for Jaeger, Loki, Grafana,
 the shared network, and optional Alloy log collection.
 

@@ -53,3 +53,4 @@ Thumbs.db
 !*.example.tfvars
 crash.log
 .serena/
+*.log

@@ -6,6 +6,7 @@ from random import randint
 from fastapi import FastAPI
 from prometheus_client import make_asgi_app
 
+from atlas_orders.api.router import router as api_router
 from atlas_orders.app.lifespan import lifespan
 from atlas_orders.app.state import get_app_state, initialize_app_state
 from atlas_orders.core.config.loader import get_settings
@@ -24,6 +25,9 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     app.mount("/metrics", make_asgi_app())  # configure for metrics
     register_health_routes(app)
     register_demo_routes(app)
+
+    app.include_router(api_router, prefix="/orders")
+
     return app
 
 
