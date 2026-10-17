@@ -10,6 +10,12 @@ package = false
 
 [tool.uv.workspace]
 members = ["services/*", "packages/*"]
+exclude = [
+    "services/execution-simulator",
+    "services/portfolio",
+    "services/ledger",
+    "services/payments",
+]
 
 [dependency-groups]
 dev = [
@@ -21,7 +27,7 @@ dev = [
 docs = ["mkdocs>=1.6,<2", "mkdocs-techdocs-core>=1.6,<2"]
 
 [tool.pytest.ini_options]
-testpaths = ["services"]
+testpaths = ["services", "packages"]
 addopts = "--import-mode=importlib"
 
 [tool.ruff]

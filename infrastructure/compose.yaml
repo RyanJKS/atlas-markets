@@ -18,12 +18,29 @@ services:
       retries: 3
       start_period: 10s
 
-  fraud-detection:
+  fraud:
     build:
       context: ..
-      dockerfile: services/fraud-detection/Dockerfile
+      dockerfile: services/fraud/Dockerfile
     ports:
       - "127.0.0.1:8002:8000"
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"
+      interval: 10s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  orders:
+    build:
+      context: ..
+      dockerfile: services/orders/Dockerfile
+    ports:
+      - "127.0.0.1:8003:8000"
     healthcheck:
       test:
         - CMD

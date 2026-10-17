@@ -9,16 +9,21 @@ service and its dependencies. This enforces dependency compatibility within the
 Python workspace. A service needing incompatible dependencies must use a separate
 project and lockfile instead.
 
-Two FastAPI service scaffolds exist:
+Three FastAPI service scaffolds exist:
 
 - `services/market-data/`: `atlas-market-data`, served locally on port 8001.
-- `services/fraud-detection/`: `atlas-fraud-detection`, served locally on port 8002.
+- `services/fraud/`: `atlas-fraud`, served locally on port 8002.
+- `services/orders/`: `atlas-orders`, served locally on port 8003.
 
-Both expose `GET /health`, `/docs`, and `/openapi.json`. Health checks indicate that
-the process responds; they do not indicate feed availability or model readiness.
-There are no databases, event brokers, market feeds, trained models, scoring routes,
-authentication mechanisms, or service-to-service calls yet. Local containers bind to
-loopback only. These scaffolds are not configured for public deployment.
+All three expose `GET /health`, `/docs`, and `/openapi.json`. Health checks indicate
+process liveness, not feed availability, order processing, or fraud assessment readiness.
+There are no databases, event brokers, market feeds, trained models, business routes,
+fraud rules, authentication mechanisms, or service-to-service calls yet. Local
+containers bind to loopback only and are not configured for public deployment.
+
+`execution-simulator/`, `portfolio/`, `ledger/`, and `payments/` are documentation-only
+placeholders under `services/`. They have no manifests, runtimes, or containers and
+are explicitly excluded from the UV workspace until implementation starts.
 
 ## Repository boundaries
 
@@ -29,6 +34,8 @@ loopback only. These scaffolds are not configured for public deployment.
   This includes your backend API. A single backend can start in `services/api/`;
   split it into domain services when separate ownership or deployment is useful.
 - `packages/` holds reusable infrastructure code or generated clients when needed.
+  `packages/telemetry/` provides JSON logging and OpenTelemetry tracing helpers;
+  services explicitly opt in. See [Shared telemetry](telemetry.md) for current scope.
   Never import another service's source tree or share its persistence models.
   A package is imported by a running application; it is not deployed as its own server.
 - `contracts/` owns reviewed HTTP and event interfaces, including versioning rules.
@@ -38,22 +45,26 @@ loopback only. These scaffolds are not configured for public deployment.
 
 ## Proposed domain services
 
-The following boundaries are a target design, not implemented functionality. Add a
-service when its first workflow exists rather than creating many empty deployments.
+The following seven directories define the target boundaries, not implemented
+business functionality. Only market data, orders, and fraud have runnable scaffolds.
+Keep the remaining services as documentation placeholders until their first workflow.
 
 - **Market data:** ingest synthetic prices first; normalize symbols and timestamps.
-- **Order management:** own order state, validation, idempotency, and cancellation.
-- **Execution:** simulate broker fills and publish execution results. Add external
-  adapters only after simulated execution works.
-- **Portfolio:** own positions, cash, and an auditable transaction ledger; reconcile
-  fills and calculate profit and loss.
-- **Risk:** calculate exposure and enforce deterministic pre-trade limits. Keep this
-  decision path distinct from asynchronous fraud analysis.
-- **Fraud detection:** score versioned trade features and emit suspicious-activity
-  decisions with model version and explanation metadata.
-- **Compliance:** own review cases, dispositions, and access to the audit history.
-- **Strategy:** generate proposed orders from research signals through the same order
-  and risk controls as a user.
+- **Orders:** own order state, validation, idempotency, and cancellation.
+- **Execution simulator:** produce reproducible simulated fills and execution results
+  without connecting to a real broker.
+- **Portfolio:** derive positions, valuations, and profit and loss from fills and prices.
+  The ledger owns the authoritative accounting record.
+- **Ledger:** account for transactions with balanced, auditable entries and idempotent
+  posting. Own accounting records rather than payment orchestration or fraud decisions.
+- **Payments:** create and manage transactions, including identifiers, state changes,
+  idempotency, and completion.
+- **Fraud:** assess transactions and return explainable decisions. Start with rules;
+  optionally consume model scores from a future `atlas-ml` component.
+
+Payments creates and manages the transaction; fraud assesses it; the ledger accounts
+for it. These are separate responsibilities. Fraud does not require an ML component
+to make rules-based decisions. No transaction processing or rules exist yet.
 
 Use an identity provider for user identity and service credentials when authentication
 is needed. Add a gateway or backend for the frontend only when it simplifies actual
@@ -61,11 +72,16 @@ client workflows.
 
 ## Proposed data flow
 
-The trader interface submits an order to order management. Order management obtains a
-risk decision before execution accepts the order. Execution publishes fills. Portfolio
-consumes fills and records positions and cash. Fraud detection evaluates trade events
-asynchronously and sends suspicious cases to compliance. Market data supplies prices
-to strategy, risk, and portfolio valuation.
+For simulated trading, the trader interface submits an order to orders. Orders applies
+validation and risk controls before the execution simulator produces fills. Portfolio
+consumes fills and market prices to derive positions and valuation. Accounting effects
+belong to the ledger rather than a separate portfolio cash ledger.
+
+For payments, payments creates a transaction and requests an assessment from fraud.
+Fraud returns a decision; payments owns the resulting transaction state and processing.
+The ledger accounts for completed transactions through a versioned posting contract.
+Define exact states and posting triggers during implementation. Deduplicate ledger
+postings by stable transaction identifiers. A fraud decision itself is not a posting.
 
 Start with synchronous HTTP for commands and queries. Add a durable event broker when
 the first asynchronous consumer exists. Kafka-compatible infrastructure is a candidate
@@ -82,14 +98,17 @@ event versions. Represent money as decimal values with explicit currency.
 
 ## ML lifecycle
 
-The target fraud workflow separates dataset preparation, time-based feature generation,
+Fraud can begin with deterministic rules before any ML work. A future `atlas-ml`
+component may own model training and evaluation, while fraud continues to own the
+transaction assessment contract. No `atlas-ml` project is created in this repository.
+
+The optional ML workflow separates dataset preparation, time-based feature generation,
 training, evaluation, artifact promotion, and serving. Store datasets and artifacts
 outside Git. Track data, feature, and model versions together. Keep preprocessing
 consistent between training and inference and prevent future data leakage.
 
-There is no separate ML directory. When training exists, start beside the fraud
-service under `services/fraud-detection/training/`, using a separate project and
-environment for heavy training dependencies. Inference keeps its own small runtime.
+There is no separate ML directory. Give training its own project and environment
+when introduced. Keep heavy training dependencies out of the fraud runtime.
 
 Begin with rules and an interpretable tabular baseline using synthetic data. Measure
 precision, recall, false positive rate, drift, and latency. Introduce shadow scoring
@@ -99,7 +118,7 @@ and report readiness only after the approved model and feature configuration loa
 ## Delivery and operations
 
 Current CI checks the complete Python workspace, service HTTP tests, Compose syntax,
-and a strict TechDocs build. The local Compose stack runs only the two scaffolds. It
+and a strict TechDocs build. The local Compose stack runs only the three HTTP scaffolds. It
 does not provision storage or deploy to a cluster.
 
 As workflows grow, add contract and cross-service tests, automated image publishing, request

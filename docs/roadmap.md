@@ -1,7 +1,8 @@
 # Build roadmap
 
-Only the workspace and two service scaffolds exist today. Build a complete simulated
-workflow before expanding the number of services or introducing cluster operations.
+The workspace, three HTTP scaffolds, and shared telemetry exist today. Four additional
+service directories contain documentation placeholders only. Build complete simulated
+workflows before turning those placeholders into deployments or adding cluster operations.
 
 ## 1. Establish market data
 
@@ -11,26 +12,34 @@ only when needed. Keep fixtures reproducible so downstream tests can replay them
 
 ## 2. Simulate a trade
 
-Add order management, deterministic risk limits, and a paper execution adapter. Record
-orders and fills with idempotency keys. Add portfolio accounting for cash, positions,
-and profit and loss. Verify a complete order-to-position workflow with integration
-tests before adding new domain services.
+Implement order management and deterministic risk limits in orders. Add reproducible
+fills in execution simulator and positions and valuation in portfolio. Record orders
+and fills with idempotency keys. Keep authoritative accounting in the ledger. Verify
+the complete order-to-position workflow with integration tests.
 
-## 3. Add durable events
+## 3. Add payments, fraud rules, and accounting
+
+Payments creates and manages the transaction; fraud assesses it; the ledger accounts
+for it. Define transaction states and assessment contracts, start fraud with deterministic
+rules, and implement balanced, idempotent ledger postings for completed transactions.
+Test rejected payments, retries, duplicate posting attempts, and reconciliation.
+Machine learning is not required for this workflow.
+
+## 4. Add durable events
 
 Introduce PostgreSQL ownership boundaries and a broker when asynchronous consumers
-need them. Publish versioned fills through an outbox. Test duplicate delivery, replay,
+need them. Publish versioned events through an outbox. Test duplicate delivery, replay,
 failure recovery, and reconciliation. Define dead-letter handling and audit retention.
 
-## 4. Build the fraud baseline
+## 5. Optionally add an ML baseline
 
-Generate labeled synthetic trades and define time-safe features beside the fraud
-service, using a separate training environment when needed.
-Train and evaluate a simple baseline. Version artifacts and preprocessing. Add model
-loading, readiness, and scoring contracts to fraud detection. Run shadow scoring and
-send flagged cases to a review workflow before enabling any blocking decision.
+Once rules-based fraud assessment works, consider a future `atlas-ml` component.
+Generate labeled synthetic transactions and define time-safe features using a separate
+training project and environment. No ML project is implemented yet. Train and evaluate
+a simple baseline, version artifacts and preprocessing, and add model readiness and
+scoring contracts. Run shadow scoring and review flagged cases before automated blocking.
 
-## 5. Add user workflows and operations
+## 6. Add user workflows and operations
 
 Build a trader workstation under `apps/`, integrate an identity provider, and enforce
 authorization. Add review tooling, audit history, structured logs, metrics, and traces.
