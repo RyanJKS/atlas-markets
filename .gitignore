@@ -28,6 +28,8 @@ mlruns/
 *.parquet
 
 # Local configuration and secrets
+infra/telemetry/logs/*
+!infra/telemetry/logs/.gitkeep
 .env
 .env.*
 !.env.example

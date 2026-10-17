@@ -15,7 +15,8 @@ can begin with rules before a future `atlas-ml` component exists.
 
 - Read [Architecture](architecture.md) for current components and proposed boundaries.
 - Follow [Development](development.md) to install, run, check, and extend the workspace.
-- Read [Shared telemetry](telemetry.md) for JSON logging and OpenTelemetry setup.
+- Use [Orders configuration](orders-configuration.md) for nested settings and environment overrides.
+- Read [Shared telemetry](telemetry.md) for logging, trace export, and Prometheus metrics.
 - Use the [Roadmap](roadmap.md) to build a complete simulated workflow incrementally.
 
 These pages are published through Backstage TechDocs. The catalog descriptor keeps

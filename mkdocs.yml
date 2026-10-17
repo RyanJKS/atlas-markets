@@ -4,6 +4,8 @@ nav:
   - Home: index.md
   - Architecture: architecture.md
   - Development: development.md
+  - Orders configuration: orders-configuration.md
+  - Orders local Docker setup: orders-docker.md
   - Shared telemetry: telemetry.md
   - Roadmap: roadmap.md
 plugins:

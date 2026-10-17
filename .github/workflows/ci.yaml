@@ -41,6 +41,8 @@ jobs:
       - name: Compile Python source
         run: python -m compileall -q services packages
       - name: Validate local container configuration
-        run: docker compose -f infrastructure/compose.yaml config --quiet
+        run: |
+          docker compose -f infrastructure/compose.yaml config --quiet
+          docker compose -f infra/telemetry-docker-compose.yaml config --quiet
       - name: Build TechDocs
         run: uv run --no-sync mkdocs build --strict --site-dir "$RUNNER_TEMP/atlas-techdocs"

@@ -17,9 +17,18 @@ Three FastAPI service scaffolds exist:
 
 All three expose `GET /health`, `/docs`, and `/openapi.json`. Health checks indicate
 process liveness, not feed availability, order processing, or fraud assessment readiness.
-There are no databases, event brokers, market feeds, trained models, business routes,
+There are no databases, event brokers, market feeds, trained models, financial routes,
 fraud rules, authentication mechanisms, or service-to-service calls yet. Local
 containers bind to loopback only and are not configured for public deployment.
+
+Orders also exposes startup readiness at `/ready` and a logging and tracing demo
+at `/random`. Its application factory registers routes, and its lifespan configures
+shared JSON logging and console tracing, then shuts the tracing provider down on
+exit. Logs inside a span include its trace/span IDs. An optional OTLP/HTTP endpoint
+adds remote trace export; an Azure connection string adds Application Insights
+trace export. A meter provider exposes the `/random` request counter at `/metrics/`
+for Prometheus to scrape. Both providers shut down on exit. Remote log export and
+automatic HTTP instrumentation are future steps.
 
 `execution-simulator/`, `portfolio/`, `ledger/`, and `payments/` are documentation-only
 placeholders under `services/`. They have no manifests, runtimes, or containers and
@@ -34,11 +43,13 @@ are explicitly excluded from the UV workspace until implementation starts.
   This includes your backend API. A single backend can start in `services/api/`;
   split it into domain services when separate ownership or deployment is useful.
 - `packages/` holds reusable infrastructure code or generated clients when needed.
-  `packages/telemetry/` provides JSON logging and OpenTelemetry tracing helpers;
+  `packages/telemetry/` provides JSON logging, tracing exporters, and a Prometheus metrics helper;
   services explicitly opt in. See [Shared telemetry](telemetry.md) for current scope.
   Never import another service's source tree or share its persistence models.
   A package is imported by a running application; it is not deployed as its own server.
 - `contracts/` owns reviewed HTTP and event interfaces, including versioning rules.
+- `infra/` holds the optional local telemetry stack and its supporting configurations.
+  See [local Docker setup](orders-docker.md).
 - `infrastructure/` holds local orchestration configuration. Add deployment
   configuration here when a target environment is chosen.
 - `tests/` is reserved for cross-service workflows. Service tests remain local.

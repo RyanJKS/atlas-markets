@@ -22,6 +22,9 @@ use `src/<package>/` and what the `packages` setting in `pyproject.toml` means.
 That build setting selects source for one Python project; the top-level `packages/`
 directory groups reusable library projects.
 
+See [Add and remove dependencies](docs/development.md#add-and-remove-dependencies)
+for commands targeting a service, shared library, development tools, or frontend app.
+
 ## Quick start
 
 Install Python 3.12 and [UV](https://docs.astral.sh/uv/) (CI uses UV 0.7.13).
@@ -56,9 +59,10 @@ services/
   payments/             Documentation placeholder
   fraud/                Runnable HTTP scaffold
 packages/
-  telemetry/            Shared JSON logging and OpenTelemetry tracing
+  telemetry/            Shared logging, tracing, and metrics
 contracts/              HTTP and event contract conventions
-infrastructure/         Local orchestration and deployment configuration
+infrastructure/         Application Compose and deployment configuration
+infra/                  Local telemetry Compose and supporting configuration
 tests/                  Future cross-service tests; unit tests live beside services
 docs/                   Architecture, development, and roadmap
 ```
@@ -90,5 +94,6 @@ runtime dependencies; the root lockfile makes local development and CI reproduci
 Record notable changes in [CHANGELOG.md](CHANGELOG.md). Releases and deployments
 remain manual; no workflow publishes an application.
 
-See [Shared telemetry](docs/telemetry.md) to adopt the logging and OpenTelemetry
-library. Services opt in explicitly; a collector is not deployed by this repository.
+See [Shared telemetry](docs/telemetry.md) for shared logging and basic OpenTelemetry
+tracing. Services opt in explicitly. The optional [local telemetry stack](docs/orders-docker.md)
+starts Grafana, Prometheus, Alloy, Loki, Jaeger, and Tempo.

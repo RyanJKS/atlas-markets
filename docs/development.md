@@ -16,6 +16,85 @@ from the workspace. No manual
 activation is required. After changing a dependency manifest, run `uv lock`, then
 `uv sync --locked --all-packages`, and commit the updated lockfile.
 
+## Add and remove dependencies
+
+Run these commands from the repository root. `--package` selects a Python workspace
+project by its `[project].name`, not its directory or import name. For orders, use
+`atlas-orders`, not `orders` or `atlas_orders`. These are command examples; run them
+when adding a dependency you need or removing one the project no longer uses.
+
+### A specific Python service or library
+
+Add or remove a runtime dependency for orders:
+
+```sh
+uv add --package atlas-orders httpx
+uv remove --package atlas-orders httpx
+```
+
+The same syntax applies to `atlas-market-data`, `atlas-fraud`, and `atlas-telemetry`.
+For example, use `--package atlas-telemetry` when changing the shared telemetry
+library's dependencies. Each command updates the selected project's `pyproject.toml`
+and the shared root `uv.lock`, then synchronizes the environment by default.
+
+Running `uv add httpx` without `--package` from the repository root instead declares
+the dependency in the root project. It does not declare it for orders. Even though
+development uses a shared `.venv/`, every service must declare its own runtime
+dependencies so its container and independent installation have what they need.
+
+### A shared workspace library
+
+To make orders depend on the local telemetry library:
+
+```sh
+uv add --package atlas-orders atlas-telemetry
+uv remove --package atlas-orders atlas-telemetry
+```
+
+UV recognizes `atlas-telemetry` as a workspace member and adds its workspace source
+configuration to orders automatically. Removing the dependency does not delete the
+library's source directory or change another service's dependencies.
+
+### Shared development tools
+
+Add or remove a development tool in the root project's `dev` group:
+
+```sh
+uv add --dev mypy
+uv remove --dev mypy
+```
+
+Keep common repository tools in the root development group. They do not become
+runtime dependencies of every service.
+
+### User applications under apps/
+
+No user application exists yet. A future Python app can use the same `--package`
+commands once its project is registered in the UV workspace. The current workspace
+does not include `apps/*` automatically.
+
+JavaScript or TypeScript frontends use their own package manager and `package.json`,
+not UV. For example, if a future `apps/trader-dashboard/` project uses npm:
+
+```sh
+npm --prefix apps/trader-dashboard install axios
+npm --prefix apps/trader-dashboard uninstall axios
+```
+
+Use the frontend's selected package manager and commit its corresponding lockfile.
+
+### After changing Python dependencies
+
+Restore the complete development environment after a sequence of scoped changes:
+
+```sh
+uv sync --locked --all-packages
+```
+
+Commit the affected `pyproject.toml` files and root `uv.lock`. Add/remove commands
+already update the lockfile; run `uv lock` separately when editing manifests manually.
+Run the affected service or library checks before committing.
+
 ## Python package layout
 
 Each Python service uses a named package inside `src/`. For example:
@@ -108,6 +187,32 @@ Each returns
 its service name and `"status": "ok"`. API explorers are available at `/docs`.
 Stop a process with Ctrl+C. If a port is busy, stop the existing process or select a
 different `--port`. Health does not prove that a feed or model is available.
+
+Orders also exposes `/ready` for application startup readiness and `/random` as a
+logging and tracing demonstration. The application factory in `atlas_orders.app.bootstrap`
+registers routes; `atlas_orders.app.lifespan` configures shared logging and tracing
+at startup and shuts the tracing provider down on exit. Request `/random` to see
+one `orders.generate_random` span in the terminal. See
+[Shared telemetry](telemetry.md#orders-example) for the example and future learning
+steps for log export. Set `OBSERVABILITY_TRACES_ENDPOINT` for optional OTLP/HTTP
+trace export or `OBSERVABILITY_AZURE_CONNECTION_STRING` for Application Insights.
+Console output remains active. Prometheus can scrape the `/random` counter at
+`/metrics/`; see [scrape configuration](telemetry.md#prometheus-metrics).
+
+Orders loads nested app and observability settings through cached `get_settings()`.
+See [Orders configuration](orders-configuration.md) for `APP_*` and `OBSERVABILITY_*`
+environment variables, explicit injection, and validation behavior.
+
+## Run local telemetry
+
+Start Grafana, Prometheus, Alloy, Loki, Jaeger, and Tempo with:
+
+```sh
+docker compose -f infra/telemetry-docker-compose.yaml up -d
+```
+
+See [Local observability with Docker](orders-docker.md) for the host UV command,
+log collection, provisioned Grafana data sources, storage, and cleanup.
 
 ## Run containers
 

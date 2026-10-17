@@ -6,11 +6,22 @@ Record notable changes here. Group release entries under Added, Changed, Fixed, 
 
 ### Added
 
+- Local telemetry Compose stack under `infra/` with provisioned Grafana data
+  sources, Prometheus scraping, Alloy log collection and trace fan-out, Loki,
+  Jaeger, and Tempo; named volumes preserve supported local backend data.
+
+- Prometheus metrics helper and orders `/metrics/` endpoint with a counter for
+  `/random` requests; optional Azure Application Insights trace export configured
+  through `OBSERVABILITY_AZURE_CONNECTION_STRING`.
+
+- Orders application factory with startup logging, console tracing around
+  `/random`, tracing provider shutdown, and a startup readiness probe.
 - Documentation placeholders for execution simulator, portfolio, ledger, and payments,
   with separate transaction management, fraud assessment, and accounting responsibilities.
 - A runnable orders scaffold with its own package, entry point, HTTP test, and container.
-- Shared `atlas-telemetry` package with JSON logs, OpenTelemetry trace correlation,
-  batched OTLP/HTTP trace export, in-memory exporter tests, and a setup guide.
+- Small shared `atlas-telemetry` package with JSON logging and a basic OpenTelemetry
+  tracing helper with console output and optional OTLP/HTTP export; logs include
+  trace/span IDs inside active spans. Remote log export remains a future step.
 - Initial repository scaffold with Python entry point, CI, and development conventions.
 - UV monorepo workspace with independently packaged market data and fraud detection
   HTTP scaffolds, service tests, local container builds, and Compose health checks.
@@ -19,6 +30,18 @@ Record notable changes here. Group release entries under Added, Changed, Fixed, 
 
 ### Changed
 
+- Orders centralizes settings and runtime instruments in typed application state
+  defined in `app/state.py`; lifecycle cleanup clears telemetry after shutdown.
+
+- Orders always initializes console logging and tracing. The optional
+  `OBSERVABILITY_TRACES_ENDPOINT` replaces the logging enable/disable flag and
+  adds remote span export.
+
+- Orders settings also read the service's UTF-8 `.env` file, with process
+  environment taking precedence; nested dotenv files are excluded from images.
+
+- Orders now composes `AppSettings` and `ObservabilitySettings` into `Settings`, with
+  a cached Pydantic Settings loader for `APP_*` and `OBSERVABILITY_*` environment values.
 - Renamed the fraud scaffold to `services/fraud/`, distribution `atlas-fraud`, and
   import package `atlas_fraud`; updated Compose and development commands.
 - Fixed the orders package and container configuration, included it in the shared
