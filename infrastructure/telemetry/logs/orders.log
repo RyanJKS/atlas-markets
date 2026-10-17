@@ -1,0 +1,32 @@
+[32mINFO[0m:     Will watch for changes in these directories: ['/home/ryanjks/CodeHaven/Personal-Projects/atlas-markets']
+[32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:8003[0m (Press CTRL+C to quit)
+[32mINFO[0m:     Started reloader process [[36m[1m477109[0m] using [36m[1mStatReload[0m
+[32mINFO[0m:     Started server process [[36m477111[0m]
+[32mINFO[0m:     Waiting for application startup.
+[32mINFO[0m:     Application startup complete.
+{"timestamp": "2026-10-17T18:29:54.287523+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "10591ee051e1e3be868119cfd44608b2", "span_id": "ec7fba19b83bf584"}
+{"timestamp": "2026-10-17T18:29:55.220814+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "2eb0215617cf71fdf6314cf775353401", "span_id": "50a2c405b1289e06"}
+{"timestamp": "2026-10-17T18:29:55.385344+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "7953cb4a5e4c1151027fe0fe579603ee", "span_id": "517bca26ca8666c2"}
+{"timestamp": "2026-10-17T18:29:55.534535+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "6d0fef0a2e56c5cd389e2fc7d1d7689b", "span_id": "f287810634e0d268"}
+{"timestamp": "2026-10-17T18:29:55.684948+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "62553d9fda532fa1ecd3b20ad6ad320f", "span_id": "af397c0eb377d754"}
+{"timestamp": "2026-10-17T18:29:55.831751+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "ce80662f0ad633d6471464db22b53bfe", "span_id": "adba51808f714406"}
+{"timestamp": "2026-10-17T18:29:55.984971+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "fde4232207ecf6b689cf4b88c1efb4a3", "span_id": "dd7b45c7db876a9a"}
+{"timestamp": "2026-10-17T18:29:56.115505+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "65e3bcd81c275e41420031f8a0776a7b", "span_id": "4e39309c5176c669"}
+{"timestamp": "2026-10-17T18:29:56.272685+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "33a4643fb833abd51b9effef2cce3ec5", "span_id": "5f9f71e4e64ecb43"}
+{"timestamp": "2026-10-17T18:29:56.418617+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "8dcb2159f2ed061ba22e68e940e3716d", "span_id": "9db54c53dc0ca6b7"}
+{"timestamp": "2026-10-17T18:29:56.560815+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "53d37382e0badc236d77efd38e0d233c", "span_id": "d487736aa0beab82"}
+{"timestamp": "2026-10-17T18:29:56.715576+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "53465de6e803ead64af0fb806d3bbff0", "span_id": "5cf5b06d6a8b3d35"}
+{"timestamp": "2026-10-17T18:29:56.874487+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "ce3ba477a88dc3d04acd9f5e99dcf1a3", "span_id": "9f3a47b95534b53e"}
+{"timestamp": "2026-10-17T18:29:57.015183+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "af33fd1ede38d4521c1caeaeb322dda3", "span_id": "eeacbfd4b2d87499"}
+{"timestamp": "2026-10-17T18:29:57.173839+00:00", "service_name": "orders", "severity": "INFO", "logger": "atlas.orders", "message": "Generated random value", "trace_id": "64129dce7e07862878ea65826cc11c82", "span_id": "657398eb30cc5c89"}
+[32mINFO[0m:     Shutting down
+[32mINFO[0m:     Waiting for application shutdown.
+[32mINFO[0m:     Application shutdown complete.
+[32mINFO[0m:     Finished server process [[36m477111[0m]
+[32mINFO[0m:     Stopping reloader process [[36m[1m477109[0m]
+[32mINFO[0m:     Will watch for changes in these directories: ['/home/ryanjks/CodeHaven/Personal-Projects/atlas-markets']
+[32mINFO[0m:     Uvicorn running on [1mhttp://0.0.0.0:8003[0m (Press CTRL+C to quit)
+[32mINFO[0m:     Started reloader process [[36m[1m477450[0m] using [36m[1mStatReload[0m
+[32mINFO[0m:     Started server process [[36m477453[0m]
+[32mINFO[0m:     Waiting for application startup.
+[32mINFO[0m:     Application startup complete.

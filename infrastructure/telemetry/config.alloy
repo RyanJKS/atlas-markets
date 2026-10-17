@@ -1,0 +1,87 @@
+// One application endpoint sends the same spans to both trace backends.
+otelcol.receiver.otlp "applications" {
+  grpc {
+    endpoint = "0.0.0.0:4317"
+  }
+  http {
+    endpoint = "0.0.0.0:4318"
+  }
+  output {
+    traces = [otelcol.processor.batch.traces.input]
+  }
+}
+
+otelcol.processor.batch "traces" {
+  output {
+    traces = [otelcol.exporter.otlp.jaeger.input, otelcol.exporter.otlp.tempo.input]
+  }
+}
+
+otelcol.exporter.otlp "jaeger" {
+  client {
+    endpoint = "jaeger:4317"
+    tls {
+      insecure = true
+    }
+  }
+}
+
+otelcol.exporter.otlp "tempo" {
+  client {
+    endpoint = "tempo:4317"
+    tls {
+      insecure = true
+    }
+  }
+}
+
+// Host-based UV runs append stderr to infra/telemetry/logs/orders.log.
+loki.source.file "host_orders" {
+  targets = [{
+    __path__     = "/var/log/atlas/*.log",
+    service_name = "orders",
+    job          = "host-orders",
+  }]
+  file_match {
+    enabled = true
+    sync_period = "1s"
+  }
+  forward_to = [loki.write.local.receiver]
+}
+
+// Collect the existing application Compose project's containers, not this stack.
+discovery.docker "atlas_services" {
+  host = "unix:///var/run/docker.sock"
+  refresh_interval = "5s"
+  filter {
+    name = "label"
+    values = ["com.docker.compose.project=atlas-markets"]
+  }
+}
+
+discovery.relabel "container_logs" {
+  targets = []
+  rule {
+    source_labels = ["__meta_docker_container_label_com_docker_compose_service"]
+    target_label = "service_name"
+  }
+  rule {
+    source_labels = ["__meta_docker_container_log_stream"]
+    regex = "stderr"
+    action = "keep"
+  }
+}
+
+loki.source.docker "atlas_services" {
+  host = "unix:///var/run/docker.sock"
+  targets = discovery.docker.atlas_services.targets
+  labels = {job = "atlas-containers"}
+  relabel_rules = discovery.relabel.container_logs.rules
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
