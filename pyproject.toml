@@ -1,3 +1,29 @@
+[project]
+name = "atlas-markets"
+version = "0.1.0"
+description = "Development workspace for the Atlas Markets hedge fund simulation"
+requires-python = ">=3.12,<3.13"
+dependencies = []
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["services/*", "packages/*"]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28,<0.29",
+    "pre-commit>=4.2,<5",
+    "pytest>=8.3,<9",
+    "ruff==0.12.12",
+]
+docs = ["mkdocs>=1.6,<2", "mkdocs-techdocs-core>=1.6,<2"]
+
+[tool.pytest.ini_options]
+testpaths = ["services"]
+addopts = "--import-mode=importlib"
+
 [tool.ruff]
 target-version = "py312"
 line-length = 100

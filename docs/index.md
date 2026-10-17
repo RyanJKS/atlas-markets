@@ -1,18 +1,16 @@
 # Atlas Markets
 
-End to End setup for a hedge fund company
+Atlas Markets is an experimental monorepo for a hedge fund simulation, including
+market data, trade execution, portfolio accounting, risk, and fraud detection.
 
-## Overview
+The repository currently provides two independent Python service scaffolds, a shared
+development workspace, local container definitions, tests, and CI. Each service exposes
+`GET /health` and generated API documentation. No financial workflow or ML model is
+implemented yet.
 
-This project starts with a Python 3.12 application in `src/main.py`.
-See the repository README for development setup and checks.
+- Read [Architecture](architecture.md) for current components and proposed boundaries.
+- Follow [Development](development.md) to install, run, check, and extend the workspace.
+- Use the [Roadmap](roadmap.md) to build a complete simulated workflow incrementally.
 
-## Architecture
-
-Read the [architecture documentation](architecture.md) for the initial design
-and a checklist of decisions to document as the project grows.
-
-## Maintaining these docs
-
-Add Markdown pages under `docs/` and list them in `mkdocs.yml` to include them
-in the navigation. Backstage displays these pages in the component's Docs tab.
+These pages are published through Backstage TechDocs. The catalog descriptor keeps
+its documentation reference at the repository root, beside `mkdocs.yml`.

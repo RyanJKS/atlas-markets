@@ -1,0 +1,15 @@
+.git
+.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+.env
+.env.*
+.agents
+.codex
+.serena
+data
+artifacts
+site
+dist
+build

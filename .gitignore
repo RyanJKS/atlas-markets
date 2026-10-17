@@ -13,6 +13,19 @@ dist/
 .coverage.*
 htmlcov/
 coverage.xml
+site/
+node_modules/
+.next/
+
+# Local datasets and ML artifacts
+data/
+artifacts/
+mlruns/
+*.joblib
+*.pkl
+*.onnx
+*.pt
+*.parquet
 
 # Local configuration and secrets
 .env
@@ -37,3 +50,4 @@ Thumbs.db
 *.tfvars.json
 !*.example.tfvars
 crash.log
+.serena/

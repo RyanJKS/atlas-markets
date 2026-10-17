@@ -5,7 +5,7 @@ metadata:
   title: "Atlas Markets"
   annotations:
     backstage.io/techdocs-ref: dir:.
-  description: "End to End setup for a hedge fund company"
+  description: "Hedge fund simulation monorepo with trading services and ML fraud detection scaffolds"
 spec:
   type: service
   lifecycle: experimental

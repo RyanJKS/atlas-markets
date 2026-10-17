@@ -1,7 +1,9 @@
 site_name: "Atlas Markets"
-site_description: "End to End setup for a hedge fund company"
+site_description: "Hedge fund simulation monorepo with trading services and ML fraud detection scaffolds"
 nav:
   - Home: index.md
   - Architecture: architecture.md
+  - Development: development.md
+  - Roadmap: roadmap.md
 plugins:
   - techdocs-core
