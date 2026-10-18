@@ -35,7 +35,7 @@ otelcol.exporter.otlp "tempo" {
   }
 }
 
-// Host-based UV runs append stderr to infra/telemetry/logs/orders.log.
+// Host-based UV runs append stderr to infrastructure/telemetry/logs/orders.log.
 loki.source.file "host_orders" {
   targets = [{
     __path__     = "/var/log/atlas/*.log",
