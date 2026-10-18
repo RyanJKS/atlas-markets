@@ -17,8 +17,29 @@ span to the console. Set `OBSERVABILITY_TRACES_ENDPOINT` to a complete OTLP/HTTP
 such as `http://localhost:4318/v1/traces` to also send spans to a receiver.
 Set `OBSERVABILITY_AZURE_CONNECTION_STRING` to also export traces to Application
 Insights. `/random` increments `orders_random_requests_total`, which Prometheus can
-scrape at `/metrics/`. Remote log export and automatic HTTP instrumentation remain
-future steps.
+scrape at `/metrics/`.
+
+The structured sample API provides `GET /orders/v1/orders`,
+`GET /orders/v1/orders/{order_id}`, and `POST /orders/v1/orders`. Responses use
+fixed fixtures or simulated acknowledgements. Submissions are never stored or
+executed. Invalid tickets return HTTP 422; unknown IDs return HTTP 404. The
+original `/orders/v1/order?id=1` endpoint remains available but is deprecated.
+Models, stateless service use cases, and HTTP routes live in separate modules.
+
+The `order-simulated` webhook appears in the **Webhooks** section of `/docs`.
+It shares the submission's `SimulatedOrder` payload and documents an outbound
+POST with an HTTP 204 acknowledgement. This declares the OpenAPI contract;
+destination registration and HTTP delivery are not implemented. See the
+[webhook guide](../../docs/orders-webhooks.md).
+
+HTTP requests continue incoming W3C trace context and baggage and return `X-Trace-ID`.
+Request logs include method, route template, status, duration, and trace/span IDs.
+`orders_http_requests_total` and `orders_http_duration_seconds` record count and
+latency, including error responses. Health, readiness, and random requests now
+have server spans; `/metrics/` scraping is excluded from request instrumentation.
+Workstation exports the matching client spans to the same collector. See the
+[workstation guide](../../docs/workstation.md) for the Streamlit UI and telemetry
+queries.
 
 From the repository root:
 

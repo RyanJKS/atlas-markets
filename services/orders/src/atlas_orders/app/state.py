@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from typing import cast
 
 from fastapi import FastAPI
-from opentelemetry.metrics import Counter
+from opentelemetry.metrics import Counter, Histogram
 from opentelemetry.trace import Tracer
 
 from atlas_orders.core.config.settings import Settings
@@ -14,6 +14,8 @@ from atlas_orders.core.config.settings import Settings
 class TelemetryState:
     tracer: Tracer
     random_requests: Counter
+    http_requests: Counter
+    http_duration: Histogram
 
 
 @dataclass

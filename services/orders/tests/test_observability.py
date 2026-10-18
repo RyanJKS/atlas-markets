@@ -24,7 +24,10 @@ def test_random_route_logs_and_traces(
         service_name += "-azure"
     spans = StringIO()
     monkeypatch.setattr(
-        "atlas_telemetry.tracing.ConsoleSpanExporter", lambda: ConsoleSpanExporter(out=spans)
+        "atlas_telemetry.tracing.ConsoleSpanExporter",
+        lambda: ConsoleSpanExporter(
+            out=spans, formatter=lambda span: span.to_json(indent=None) + "\n"
+        ),
     )
     exported = InMemorySpanExporter()
     exporter_factory = Mock(return_value=exported)
@@ -52,7 +55,11 @@ def test_random_route_logs_and_traces(
         ]
         assert values == [1.0]
     output = capfd.readouterr()
-    span = json.loads(spans.getvalue())
+    span = next(
+        json.loads(line)
+        for line in spans.getvalue().splitlines()
+        if json.loads(line)["name"] == "orders.generate_random"
+    )
     assert span["name"] == "orders.generate_random"
     assert span["resource"]["attributes"]["service.name"] == service_name
     records = [json.loads(line) for line in output.err.splitlines()]
@@ -64,7 +71,7 @@ def test_random_route_logs_and_traces(
         exporter_factory.assert_not_called()
     else:
         exporter_factory.assert_called_once_with(endpoint=endpoint)
-        assert len(exported.get_finished_spans()) == 1
+        assert len(exported.get_finished_spans()) == 2
         assert (
             format(exported.get_finished_spans()[0].context.trace_id, "032x") == record["trace_id"]
         )
@@ -72,7 +79,7 @@ def test_random_route_logs_and_traces(
         azure_factory.assert_not_called()
     else:
         azure_factory.assert_called_once_with(connection_string=azure_connection_string)
-        assert len(azure_exported.get_finished_spans()) == 1
+        assert len(azure_exported.get_finished_spans()) == 2
         assert (
             format(azure_exported.get_finished_spans()[0].context.trace_id, "032x")
             == record["trace_id"]

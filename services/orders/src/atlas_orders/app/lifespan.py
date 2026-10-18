@@ -34,6 +34,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                 random_requests=meter.create_counter(
                     "orders.random.requests", description="Number of random endpoint requests"
                 ),
+                http_requests=meter.create_counter(
+                    "orders.http.requests", description="Number of Orders API requests"
+                ),
+                http_duration=meter.create_histogram(
+                    "orders.http.duration", unit="s", description="Orders API request duration"
+                ),
             )
             yield
         finally:

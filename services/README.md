@@ -32,11 +32,31 @@ assess transactions with deterministic rules before machine learning exists.
 These boundaries are a design, not implemented transaction flows. There are no payment
 APIs, fraud decisions, accounting entries, execution simulations, or databases yet.
 
-## Two telemetry approaches
+## Three telemetry approaches
 
-The plan is to compare explicit SDK setup and Operator-injected instrumentation
-in the same Kubernetes cluster. Both use OpenTelemetry SDKs; the difference is
-whether service code or the Operator initializes and configures the SDK.
+Services have three configuration options for traces and metrics:
+
+1. **FastAPI native:** use FastAPI's built-in telemetry and automatic exporter
+   setup with `FASTAPI_OTEL_AUTO_CONFIGURE=true`, `OTEL_SERVICE_NAME`, and an
+   HTTP/protobuf `OTEL_EXPORTER_OTLP_ENDPOINT` base URL. The framework appends
+   `/v1/traces`, `/v1/metrics`, and `/v1/logs` for the corresponding signals.
+   Adopt `fastapi[standard]` as described in the FastAPI guide. Repository
+   configuration does not currently enable this native exporter setup.
+2. **Managed Docker or Helm setup:** initialize automatic instrumentation through
+   a container launcher or Kubernetes Operator injection. Docker images need the
+   launcher and compatible instrumentation packages; Helm installs the Operator,
+   then an `Instrumentation` resource and pod annotation enable injection.
+   These are deployment examples, not the current service Dockerfile setup.
+3. **Granular SDK setup:** service code owns providers, processors, exporters,
+   instruments, and shutdown. Orders implements this through `atlas-telemetry`,
+   with OTLP/HTTP traces, Prometheus scraping, and stderr log collection.
+
+See the [three approaches guide](../docs/telemetry.md#three-service-telemetry-approaches)
+for native environment variables, Docker and Helm examples, endpoint formats,
+and receiver requirements. The current local Alloy OTLP pipeline forwards traces
+only; OTLP metrics and logs require additional receiver pipelines.
+
+Current service choices:
 
 | Service | Approach | Current status |
 | --- | --- | --- |
@@ -88,7 +108,7 @@ required by orders' explicit SDK setup.
 After installing the Operator, define an `Instrumentation` resource for market data
 and add `instrumentation.opentelemetry.io/inject-python` to the Deployment's **pod
 template** annotations. Recreate the pods to apply injection. See the
-[managed instrumentation example](../docs/telemetry.md#two-instrumentation-approaches-in-kubernetes).
+[managed instrumentation example](../docs/telemetry.md#kubernetes-operator-example).
 These are future setup references; this repository does not currently install the
 Operator or provide the market-data Kubernetes Deployment.
 

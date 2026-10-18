@@ -6,6 +6,7 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 RUN pip install --no-cache-dir uv==0.7.13
 COPY pyproject.toml uv.lock ./
+COPY apps/ ./apps/
 COPY services/ ./services/
 COPY packages/ ./packages/
 RUN uv sync --locked --no-dev --package atlas-fraud \
