@@ -6,6 +6,19 @@ Record notable changes here. Group release entries under Added, Changed, Fixed, 
 
 ### Added
 
+- Connected Workstation HTTP client and Orders server spans, with W3C context
+  and baggage propagation, shared collector export, and cross-application
+  tracing tests including a Streamlit widget action.
+
+- OpenAPI `order-simulated` webhook contract in Orders `/docs`, sharing the
+  simulated submission response model. Destination registration and HTTP
+  notification delivery remain unimplemented.
+
+- Streamlit service workstation with sample order blotter, simulated order entry,
+  request history, and separate UI, HTTP client, and service configuration modules.
+- Stateless Orders list, lookup, and validated submission endpoints, with W3C
+  trace propagation, correlated request logs, and request count/latency metrics.
+
 - Local telemetry Compose stack under `infra/` with provisioned Grafana data
   sources, Prometheus scraping, Alloy log collection and trace fan-out, Loki,
   Jaeger, and Tempo; named volumes preserve supported local backend data.
@@ -29,6 +42,10 @@ Record notable changes here. Group release entries under Added, Changed, Fixed, 
   cross-service tests; architecture, development, and incremental delivery guides.
 
 ### Changed
+
+- Workstation service URLs now load from `apps/workstation/.env`, with process
+  environment overrides and a committed `.env.example`. Removed the sidebar
+  URL editor and hardcoded URL fallback.
 
 - Orders centralizes settings and runtime instruments in typed application state
   defined in `app/state.py`; lifecycle cleanup clears telemetry after shutdown.

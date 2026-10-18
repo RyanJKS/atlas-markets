@@ -10,8 +10,8 @@ uv sync --locked --all-packages
 uv run pre-commit install
 ```
 
-UV creates `.venv/` and installs the three service packages and shared telemetry
-library in editable mode. The four documentation-only service placeholders are excluded
+UV creates `.venv/` and installs the workstation, three service packages, and
+shared telemetry library in editable mode. The four documentation-only service placeholders are excluded
 from the workspace. No manual
 activation is required. After changing a dependency manifest, run `uv lock`, then
 `uv sync --locked --all-packages`, and commit the updated lockfile.
@@ -69,19 +69,17 @@ runtime dependencies of every service.
 
 ### User applications under apps/
 
-No user application exists yet. A future Python app can use the same `--package`
-commands once its project is registered in the UV workspace. The current workspace
-does not include `apps/*` automatically.
-
-JavaScript or TypeScript frontends use their own package manager and `package.json`,
-not UV. For example, if a future `apps/trader-dashboard/` project uses npm:
+The Python workspace includes `apps/*`. The Streamlit workstation uses the
+`atlas-workstation` package. Add or remove its runtime dependencies with:
 
 ```sh
-npm --prefix apps/trader-dashboard install axios
-npm --prefix apps/trader-dashboard uninstall axios
+uv add --package atlas-workstation httpx
+uv remove --package atlas-workstation httpx
 ```
 
-Use the frontend's selected package manager and commit its corresponding lockfile.
+These are examples; keep `httpx` while the workstation uses it. See the
+[workstation guide](workstation.md) for launch commands and module boundaries.
+JavaScript or TypeScript applications use their own package manager and lockfile.
 
 ### After changing Python dependencies
 
@@ -192,7 +190,7 @@ Orders also exposes `/ready` for application startup readiness and `/random` as 
 logging and tracing demonstration. The application factory in `atlas_orders.app.bootstrap`
 registers routes; `atlas_orders.app.lifespan` configures shared logging and tracing
 at startup and shuts the tracing provider down on exit. Request `/random` to see
-one `orders.generate_random` span in the terminal. See
+an `orders.generate_random` business span inside the HTTP server span in the terminal. See
 [Shared telemetry](telemetry.md#orders-example) for the example and future learning
 steps for log export. Set `OBSERVABILITY_TRACES_ENDPOINT` for optional OTLP/HTTP
 trace export or `OBSERVABILITY_AZURE_CONNECTION_STRING` for Application Insights.
@@ -247,7 +245,7 @@ uv run ruff check .
 uv run ruff format --check .
 uv run pytest
 uv run pre-commit run --all-files
-python -m compileall -q services packages
+python -m compileall -q apps services packages
 ```
 
 Run one service's tests with `uv run pytest services/market-data/tests`. Tests use

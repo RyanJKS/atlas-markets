@@ -9,6 +9,125 @@ stderr; completed spans print to stdout. Traces can also go to OTLP/HTTP and Azu
 Application Insights. Prometheus scrapes metrics from orders at `/metrics/`.
 Remote log export is a later step.
 
+## Three service telemetry approaches
+
+Services can collect traces and metrics in three ways. They differ in who
+initializes the SDK and exporters; they can use the same monitoring backend.
+
+| Approach | Configuration owner | Repository status |
+| --- | --- | --- |
+| FastAPI native | FastAPI configures its built-in telemetry and optional OTLP exporters. | Supported by the current FastAPI framework; native exporter setup is not enabled by repository configuration. |
+| Managed Docker or Helm setup | A container launcher or Kubernetes Operator initializes automatic instrumentation. | Deployment examples; current Dockerfiles do not use the launcher, and Operator injection is not deployed here. |
+| Granular SDK setup | Application code owns providers, processors, exporters, instruments, and shutdown. | Implemented by Orders and Workstation through `atlas-telemetry`. |
+
+Choose one owner for SDK and exporter initialization in each process. Manual
+business spans can be added to native or managed instrumentation using their
+existing providers. Configuring the same exporter twice can duplicate telemetry.
+
+### FastAPI native
+
+Follow the [FastAPI OpenTelemetry guide](https://fastapi.tiangolo.com/advanced/opentelemetry/#fastapi-cloud).
+With `fastapi[standard]`, FastAPI supplies HTTP request traces and metrics,
+WebSocket traces, and telemetry logs for validation failures and unhandled
+exceptions. FastAPI Cloud configures its integration automatically; another
+monitoring service needs an OTLP receiver.
+
+The guide recommends `fastapi[standard]` to install the telemetry dependencies.
+For a service adopting this approach, update its manifest and lockfile first,
+for example with `uv add --package atlas-market-data "fastapi[standard]"`.
+This is an adoption step, not a dependency change made by this documentation.
+
+Use the monitoring service's **HTTP/protobuf base endpoint**:
+
+```sh
+export FASTAPI_OTEL_AUTO_CONFIGURE=true
+export OTEL_SERVICE_NAME=market-data
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://collector.example.com
+uv run --package atlas-market-data uvicorn atlas_market_data.main:app --port 8001
+```
+
+`FASTAPI_OTEL_AUTO_CONFIGURE=true` enables FastAPI's automatic exporter setup.
+`OTEL_SERVICE_NAME` identifies the application in the monitoring service.
+FastAPI appends `/v1/traces`, `/v1/metrics`, and `/v1/logs` to the base URL for
+the respective signals. Do not append `/v1/traces` to this base setting. If the
+monitoring service requires authentication, configure `OTEL_EXPORTER_OTLP_HEADERS`
+as its documentation specifies, for example `api-key=YOUR_API_KEY`.
+
+FastAPI's `telemetry={"auto_configure": False}` application option overrides
+the environment flag. Leave automatic exporter setup disabled when another
+library already exports through the same providers to that destination.
+Native telemetry logs do not automatically export every existing application
+log written to stderr; retain an appropriate application log collection path.
+
+Send requests, then find `market-data` in the monitoring service after an export
+interval. Request traces and metrics should show the requested route. The
+placeholder collector URL above must be replaced with a reachable receiver.
+
+### Managed Docker and Helm setup
+
+Here the deployment initializes instrumentation, keeping provider setup out of
+the application's business code. For Docker, build the OpenTelemetry launcher,
+exporter, and required instrumentation packages into the image and use
+`opentelemetry-instrument` as the process launcher. For Kubernetes, install the
+OpenTelemetry Operator through Helm and configure its `Instrumentation` resource
+and pod template annotation.
+
+For example, after installing `opentelemetry-distro`,
+`opentelemetry-exporter-otlp-proto-http`, and the instrumentation packages for
+the application's libraries in its image, a Docker entry point could run:
+
+```sh
+OTEL_SERVICE_NAME=market-data \
+OTEL_EXPORTER_OTLP_ENDPOINT=http://alloy:4318 \
+OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf \
+OTEL_TRACES_EXPORTER=otlp \
+OTEL_METRICS_EXPORTER=otlp \
+OTEL_LOGS_EXPORTER=otlp \
+opentelemetry-instrument \
+  uvicorn atlas_market_data.main:app --host 0.0.0.0 --port 8000
+```
+
+This is an adoption example, not the current Dockerfile entry point. The image
+must contain compatible instrumentation packages; signals depend on the enabled
+instrumentation. Keep FastAPI's automatic exporter setup disabled when the
+launcher already owns exporter configuration. See the
+[Kubernetes Operator example](#kubernetes-operator-example) below for Helm
+references, an `Instrumentation` resource, and the injection annotation.
+
+The existing Compose stack runs monitoring backends and Alloy log collection;
+starting it does not inject an SDK into application containers.
+
+### Granular SDK setup
+
+Use explicit SDK setup when a service needs direct control over resources,
+sampling, span processors, metric readers, exporters, or provider lifetime.
+Orders implements this approach through the shared `atlas-telemetry` package:
+
+- The Orders lifespan initializes providers and owns their shutdown.
+- Route middleware and business code create spans, counters, and histograms.
+- `OBSERVABILITY_TRACES_ENDPOINT` configures a complete OTLP/HTTP trace URL, such
+  as `http://localhost:4318/v1/traces`. Console tracing remains enabled.
+- Prometheus pulls metrics from `/metrics/`; Orders does not currently push
+  metrics over OTLP.
+- JSON logs go to stderr and reach Loki through Alloy file/container collection.
+
+Orders' explicit resources use `APP_SERVICE_NAME`; setting `OTEL_SERVICE_NAME`
+does not rename those resources. The native and managed examples require
+choosing or refactoring provider ownership before applying them to Orders.
+The existing [Orders example](#orders-example), [trace export](#trace-export),
+and [Prometheus metrics](#prometheus-metrics) sections describe this setup.
+
+### Receiver support and endpoint formats
+
+Native and managed OTLP exporters use a base URL and add signal paths. Orders'
+custom `OBSERVABILITY_TRACES_ENDPOINT` instead takes the complete trace URL.
+
+The current local Alloy configuration forwards **OTLP traces only**. Metrics
+reach Prometheus by scraping, and logs reach Loki through file/container sources.
+Before using a native or managed exporter for OTLP metrics or logs locally,
+configure the receiver's corresponding pipelines and destinations. Setting
+exporter environment variables alone does not add those pipelines.
+
 ## Library and service boundaries
 
 The shared package owns log formatting and reusable logging, tracing, and metrics setup. Each service owns its
@@ -42,6 +161,21 @@ atlas-telemetry = { workspace = true }
 The service's Dockerfile copies workspace manifests and source before running
 `uv sync --locked --no-dev --package atlas-orders`. That installs the service and
 its declared shared dependency. Use the repository root as the Docker build context.
+
+## Orders API requests
+
+The [service workstation](workstation.md#inspect-an-end-to-end-trace) exports
+HTTP client spans and injects W3C trace context and baggage on outgoing requests.
+Orders HTTP requests continue that context, return
+`X-Trace-ID`, and log method, route template, status, duration, and correlated
+trace/span IDs. The middleware records `orders_http_requests_total` and
+`orders_http_duration_seconds` with method, route, and status labels. HTTP 404
+and 422 responses are included. IDs and request bodies are excluded from metric
+labels. Health, readiness, and random requests also have server spans. The
+`orders.generate_random` span is a child of its request span. `/metrics/`
+scrapes are excluded from server tracing and request metrics. Configure both
+applications with the same trace collector and distinct service names to see
+connected client/server spans in Jaeger or Tempo.
 
 ## Orders example
 
@@ -78,7 +212,8 @@ uv run --package atlas-orders uvicorn atlas_orders.main:app --reload --port 8003
 ```
 
 Request `http://localhost:8003/random` and inspect the terminal: the route logs a
-message to stderr and prints one `orders.generate_random` span to stdout. The span
+message to stderr and prints an `orders.generate_random` span inside its server
+request span to stdout. The business span
 wraps the random number generation, counter increment, and log call. Each log record includes timestamp,
 service name, severity, logger name, and message.
 Logs inside an active span also include matching `trace_id` and `span_id` fields;
@@ -182,7 +317,7 @@ For container-to-host access, use a reachable host address and bind Uvicorn to
 The optional [local telemetry stack](orders-docker.md) includes Prometheus, Alloy,
 Loki, Jaeger, Tempo, and Grafana. Azure resources must be provisioned separately.
 
-## Two instrumentation approaches in Kubernetes
+## Kubernetes Operator example
 
 The planned comparison uses **orders** for explicit SDK initialization and manual
 spans, and **market-data** for Operator-injected Python instrumentation. Orders'
@@ -264,6 +399,6 @@ anything in a cluster.
 
 1. Add application-side OTLP log export if you need an alternative to Alloy's file
    and container log collection.
-2. Add automatic HTTP instrumentation.
+2. Extend request instrumentation to other services and introduce client spans when needed.
 
 These next steps are not implemented yet.

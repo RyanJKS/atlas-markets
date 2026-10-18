@@ -46,10 +46,25 @@ Orders runs with `uv run --package atlas-orders uvicorn atlas_orders.main:app --
 Open `/docs` on ports 8001 (market data), 8002 (fraud), or 8003 (orders) for the API explorers.
 `GET /health` reports process liveness only.
 
+## Service workstation
+
+For initial setup, copy `apps/workstation/.env.example` to
+`apps/workstation/.env` and configure `ORDERS_API_URL`. Keep an existing `.env`
+file. Run the Streamlit app in another terminal:
+
+```sh
+uv run --package atlas-workstation streamlit run apps/workstation/streamlit_app.py
+```
+
+Open <http://localhost:8501> to browse sample orders, submit simulated tickets,
+and inspect request telemetry. Orders must run on port 8003. Submissions are
+not stored or executed. See the [workstation guide](docs/workstation.md) for
+configuration, endpoints, telemetry, and adding services.
+
 ## Layout
 
 ```text
-apps/                   User applications, reserved for future frontends
+apps/                   User applications, Streamlit service workstation
 services/
   market-data/          Runnable HTTP scaffold
   orders/               Runnable HTTP scaffold
@@ -63,7 +78,7 @@ packages/
 contracts/              HTTP and event contract conventions
 infrastructure/         Application Compose and deployment configuration
 infra/                  Local telemetry Compose and supporting configuration
-tests/                  Future cross-service tests; unit tests live beside services
+tests/                  Workstation-to-Orders tracing tests; unit tests live beside services
 docs/                   Architecture, development, and roadmap
 ```
 

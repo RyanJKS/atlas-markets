@@ -39,7 +39,7 @@ jobs:
           uv run --no-sync ruff format --check .
           uv run --no-sync pytest
       - name: Compile Python source
-        run: python -m compileall -q services packages
+        run: python -m compileall -q apps services packages
       - name: Validate local container configuration
         run: |
           docker compose -f infrastructure/compose.yaml config --quiet

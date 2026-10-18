@@ -4,6 +4,8 @@ nav:
   - Home: index.md
   - Architecture: architecture.md
   - Development: development.md
+  - Service workstation: workstation.md
+  - Orders webhook contract: orders-webhooks.md
   - Orders configuration: orders-configuration.md
   - Orders local Docker setup: orders-docker.md
   - Shared telemetry: telemetry.md

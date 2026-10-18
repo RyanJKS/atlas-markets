@@ -46,6 +46,12 @@ nested settings. Calling `create_app()` without an explicit model also uses
 
 ## Environment variables
 
+These are Orders' granular SDK settings. FastAPI native and managed deployment
+instrumentation use a separate `OTEL_*` configuration convention. See the
+[three service telemetry approaches](telemetry.md#three-service-telemetry-approaches)
+for the alternatives, their adoption requirements, and endpoint differences.
+
+
 The environment adapters use case-insensitive names with separate prefixes:
 
 | Variable | Default | Effect |

@@ -17,8 +17,8 @@ Three FastAPI service scaffolds exist:
 
 All three expose `GET /health`, `/docs`, and `/openapi.json`. Health checks indicate
 process liveness, not feed availability, order processing, or fraud assessment readiness.
-There are no databases, event brokers, market feeds, trained models, financial routes,
-fraud rules, authentication mechanisms, or service-to-service calls yet. Local
+There are no databases, event brokers, market feeds, trained models, financial
+workflows, fraud rules, authentication mechanisms, or service-to-service calls yet. Local
 containers bind to loopback only and are not configured for public deployment.
 
 Orders also exposes startup readiness at `/ready` and a logging and tracing demo
@@ -27,16 +27,34 @@ shared JSON logging and console tracing, then shuts the tracing provider down on
 exit. Logs inside a span include its trace/span IDs. An optional OTLP/HTTP endpoint
 adds remote trace export; an Azure connection string adds Application Insights
 trace export. A meter provider exposes the `/random` request counter at `/metrics/`
-for Prometheus to scrape. Both providers shut down on exit. Remote log export and
-automatic HTTP instrumentation are future steps.
+for Prometheus to scrape. Both providers shut down on exit. Requests under
+`/orders/` now have HTTP spans, correlated logs, and request metrics. Other routes retain their existing instrumentation.
 
 `execution-simulator/`, `portfolio/`, `ledger/`, and `payments/` are documentation-only
 placeholders under `services/`. They have no manifests, runtimes, or containers and
 are explicitly excluded from the UV workspace until implementation starts.
 
+## Service workstation and sample Orders API
+
+`apps/workstation/` is an installed Python package serving a Streamlit UI on
+port 8501. UI pages call service clients through a shared HTTP transport; they
+never import service source. Configuration, navigation, service clients, and
+presentation components remain separate so later services can add pages.
+See the [workstation guide](workstation.md).
+
+Orders now exposes fixed sample list and lookup endpoints, plus a validated
+simulated submission endpoint. Pydantic models define the HTTP contracts; a
+stateless service owns fixtures and acknowledgements. No submissions persist,
+execute, or change the sample blotter. Request middleware continues W3C trace
+context, emits correlated logs, and records counts and latency by route template.
+Workstation exports HTTP client spans and propagates W3C trace context and
+baggage to Orders. Its server spans share the same trace and parent relationship
+in the configured backend. Health, readiness, and random requests are included;
+metrics scrapes are excluded from request instrumentation.
+
 ## Repository boundaries
 
-- `apps/` owns deployable user interfaces. Add frontend tooling when a frontend exists.
+- `apps/` owns deployable user interfaces. The Streamlit workstation joins the Python workspace.
   Containerized applications keep their Dockerfiles inside their own directories.
 - `services/` owns independently deployable domain services and their business logic.
   Each service keeps its Dockerfile alongside its package manifest.
